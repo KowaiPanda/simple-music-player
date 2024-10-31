@@ -1,2 +1,3 @@
 .vscode/
-# demo/target
+demo/target/
+demo/target/classes/com/example/
