@@ -7,6 +7,7 @@ module com.example {
     requires javafx.base;
     requires org.xerial.sqlitejdbc;
     requires java.sql.rowset;
+    requires jaudiotagger;
 
     opens com.example to javafx.fxml;
     exports com.example;

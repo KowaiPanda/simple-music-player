@@ -23,12 +23,16 @@ import javafx.geometry.Orientation;
 import javafx.stage.FileChooser;
 import javafx.scene.control.Button;
 import java.util.List;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
 
 //Main class where the application is sets up
 public class App extends Application {
 
     @Override
-    public void start(@SuppressWarnings("exports") Stage primaryStage) {
+    public void start(Stage primaryStage) {
         
         try{
             // Initialize components
@@ -178,7 +182,6 @@ class AudioPlayer {
 class MusicLibrary {
     private Connection db;
     private List<Song> songs;
-    private Set<String> scannedDirectories = new HashSet<>();
 
     // Constructor to initialize list 'song'
     public MusicLibrary(String dbPath) {
@@ -258,7 +261,7 @@ class MusicLibrary {
             pstmt.setString(1, song.getTitle());
             pstmt.setString(2, song.getArtist());
             pstmt.setString(3, song.getAlbum());
-            pstmt.setLong(4, (long) song.getDuration().toSeconds());
+            pstmt.setLong(4, (long) song.getDuration().toMinutes());
             pstmt.setString(5, song.getFilePath());
             pstmt.setString(6, song.getFormat());
             
@@ -274,87 +277,6 @@ class MusicLibrary {
         return new ArrayList<>(songs);
     }
 
-    // Loads the directory previously scanned to a hash set
-    private void loadScannedDirectoriesFromDB() {
-        try {
-            // Query the database to get the stored scanned directories
-            String query = "SELECT directory_path FROM ScannedDirectories";
-            Statement stmt = db.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
-            while (rs.next()) {
-                String directoryPath = rs.getString("directory_path");
-                scannedDirectories.add(directoryPath); // Load into the set
-            }
-        } catch (SQLException e) {
-            System.err.println("Error loading scanned directories: " + e.getMessage());
-        }
-    }
-
-    // Scans a directory path and adds the files in the directory to the table 'songs'
-    public void scanDirectory(String directoryPath) {
-        // Check if the directory has already been scanned
-        loadScannedDirectoriesFromDB();
-        if (scannedDirectories.contains(directoryPath)) {
-            System.out.println("Directory " + directoryPath + " has already been scanned.");
-            return; // Exit if already scanned
-        }
-
-        File directory = new File(directoryPath);
-        if (directory.exists() && directory.isDirectory()) {
-            // Add the directory to the set and the database
-            scannedDirectories.add(directoryPath);
-            addDirectoryToDB(directoryPath); // Save to database
-
-            // Iterate over files in the directory
-            for (File file : directory.listFiles()) {
-                if (isAudioFile(file)) {
-                    Song song = createSongFromFile(file);
-                    if (song != null) {
-                        addSong(song); // Add the song to the library
-                    }
-                }
-            }
-        } else {
-            System.err.println("Directory " + directoryPath + " does not exist or is not a directory.");
-        }
-    }
-
-    // Once a new directory path is scanned, it is then added to the datasbase
-    private void addDirectoryToDB(String directoryPath) {
-        try {
-            // Insert the new directory path into the database
-            String insertSQL = "INSERT INTO ScannedDirectories (directory_path) VALUES (?)";
-            PreparedStatement pstmt = db.prepareStatement(insertSQL);
-            pstmt.setString(1, directoryPath);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error adding directory to database: " + e.getMessage());
-        }
-    }
-
-    private boolean isAudioFile(File file) {
-        String name = file.getName().toLowerCase();
-        return name.endsWith(".mp3") || name.endsWith(".wav") || name.endsWith(".m4a");
-    }
-
-    // Converting the scanned file into 'Song' format
-    // Still has yet to be implemneted
-    private Song createSongFromFile(File file) {
-        // Use metadata extraction library to get song details
-        try {
-            return new Song(
-                file.getName().replaceFirst("[.][^.]+$", ""),
-                "Unknown Artist",
-                "Unknown Album",
-                Duration.seconds(0),
-                file.getAbsolutePath(),
-                file.getName().substring(file.getName().lastIndexOf(".") + 1)
-            );
-        } catch (Exception e) {
-            System.err.println("Error creating song from file: " + e.getMessage());
-            return null;
-        }
-    }
 }
 
 // 3. Playlist Manager Class
@@ -388,14 +310,9 @@ class PlaylistManager {
             "FOREIGN KEY (song_id) REFERENCES songs(id)" +
             ")";
 
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS ScannedDirectories ("
-            + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + "directory_path TEXT UNIQUE NOT NULL);";
-        
         try (Statement stmt = db.createStatement()) {
             stmt.execute(createPlaylistsTable);
             stmt.execute(createPlaylistSongsTable);
-            stmt.execute(createTableSQL);
         } catch (SQLException e) {
             System.err.println("Error creating playlist tables: " + e.getMessage());
         }
@@ -653,16 +570,25 @@ class MusicPlayerUI extends BorderPane {
         if (selectedFiles != null) {
             for (File file : selectedFiles) {
                 try {
+                    AudioFile f = AudioFileIO.read(file);
+                    Tag tag = f.getTag();
+
                     String fileName = file.getName();
                     String title = fileName.replaceFirst("[.][^.]+$", "");
                     String[] parts = fileName.split("[.][^.]+$");
                     String extension = parts.length > 1 ? parts[1] : "";
+                    String artist = tag.getFirst(FieldKey.ARTIST);
+                    String album = tag.getFirst(FieldKey.ALBUM);
+                    int length = f.getAudioHeader().getTrackLength();
+
+                    if(artist.length()==0) artist = "Unknown Artist";
+                    if(album.length()==0) album = "Unknown Album";
     
                     Song song = new Song(
                         title,
-                        "Unknown Artist",  
-                        "Unknown Album", 
-                        Duration.ZERO,
+                        artist,  
+                        album, 
+                        Duration.minutes(length),
                         file.getAbsolutePath(),
                         extension
                     );
@@ -700,6 +626,7 @@ class MusicPlayerUI extends BorderPane {
         centerTabPane = new TabPane();
     
         Tab libraryTab = new Tab("Library");
+        libraryTab.setClosable(false);
         VBox libraryBox = new VBox(10);
         libraryBox.setPadding(new javafx.geometry.Insets(10));
         
@@ -718,6 +645,7 @@ class MusicPlayerUI extends BorderPane {
         libraryTab.setContent(libraryBox);
         
         Tab playlistTab = new Tab("Current Playlist");
+        playlistTab.setClosable(false);
         VBox playlistBox = new VBox(10);
         playlistBox.setPadding(new javafx.geometry.Insets(10));
         
@@ -726,6 +654,7 @@ class MusicPlayerUI extends BorderPane {
         playlistTab.setContent(playlistBox);
         
         Tab queueTab = new Tab("Queue");
+        queueTab.setClosable(false);
         VBox queueBox = new VBox(10);
         queueBox.setPadding(new javafx.geometry.Insets(10));
         
