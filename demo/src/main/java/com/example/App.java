@@ -528,6 +528,9 @@ class MusicPlayerUI extends BorderPane {
     private ListView<Song> playlistContentView;
     private ListView<Song> queueListView;
     private TabPane centerTabPane;
+    MenuItem playNowItem = new MenuItem("Play Now");
+    MenuItem addToQueueItem = new MenuItem("Add to Queue");
+    Menu addToPlaylistMenu = new Menu("Add to Playlist");
     
     public MusicPlayerUI(AudioPlayer audioPlayer, MusicLibrary library, PlaylistManager playlistManager) {
         this.audioPlayer = audioPlayer;
@@ -605,6 +608,8 @@ class MusicPlayerUI extends BorderPane {
                 }
             }
         }
+        //Refreshing the listview
+        songListView.setItems(FXCollections.observableArrayList(library.getAllSongs()));
     }    
 
     private VBox createLeftPanel() {
@@ -616,7 +621,10 @@ class MusicPlayerUI extends BorderPane {
         playlistListView.getItems().addAll(playlistManager.getPlaylistNames());
         
         Button createPlaylistButton = new Button("New Playlist");
-        createPlaylistButton.setOnAction(e -> showCreatePlaylistDialog());
+        createPlaylistButton.setOnAction(e ->{
+            showCreatePlaylistDialog();
+            refreshAddToPlaylistMenu();
+        });
         
         panel.getChildren().addAll(playlistLabel, playlistListView, createPlaylistButton);
         return panel;
@@ -724,7 +732,7 @@ class MusicPlayerUI extends BorderPane {
 
     private void startProgressUpdater() {
         Timeline timeline = new Timeline(
-            new KeyFrame(Duration.seconds(0.1), event -> {
+            new KeyFrame(Duration.seconds(0.1), e -> {
                 if (audioPlayer.isPlaying()) {
                     double currentTime = audioPlayer.getCurrentTime().toSeconds();
                     double totalTime = audioPlayer.getTotalDuration().toSeconds();
@@ -812,7 +820,6 @@ class MusicPlayerUI extends BorderPane {
     private ContextMenu createSongContextMenu() {
         ContextMenu menu = new ContextMenu();
         
-        MenuItem playNowItem = new MenuItem("Play Now");
         playNowItem.setId("playNowItem");
         playNowItem.setOnAction(e -> {
             Song selectedSong = songListView.getSelectionModel().getSelectedItem();
@@ -821,7 +828,6 @@ class MusicPlayerUI extends BorderPane {
             }
         });
         
-        MenuItem addToQueueItem = new MenuItem("Add to Queue");
         addToQueueItem.setId("addToQueueItem");
         addToQueueItem.setOnAction(e -> {
             Song selectedSong = songListView.getSelectionModel().getSelectedItem();
@@ -831,7 +837,6 @@ class MusicPlayerUI extends BorderPane {
             }
         });
         
-        Menu addToPlaylistMenu = new Menu("Add to Playlist");
         playlistManager.getPlaylistNames().forEach(playlistName -> {
             MenuItem playlistItem = new MenuItem(playlistName);
             playlistItem.setOnAction(e -> {
@@ -940,27 +945,43 @@ class MusicPlayerUI extends BorderPane {
         tabContent.getChildren().add(0, searchField);
     }
 
+    private void refreshAddToPlaylistMenu() {
+        addToPlaylistMenu.getItems().clear();
+        
+        playlistManager.getPlaylistNames().forEach(playlistName -> {
+            MenuItem playlistItem = new MenuItem(playlistName);
+            playlistItem.setOnAction(e -> {
+                Song selectedSong = songListView.getSelectionModel().getSelectedItem();
+                if (selectedSong != null) {
+                    playlistManager.addToPlaylist(playlistName, selectedSong);
+                    updatePlaylistContent();
+                }
+            });
+            addToPlaylistMenu.getItems().add(playlistItem);
+        });
+    }
+
     private void setupDragAndDrop() {
-        songListView.setOnDragDetected(event -> {
+        songListView.setOnDragDetected(e -> {
             Song selectedSong = songListView.getSelectionModel().getSelectedItem();
             if (selectedSong != null) {
                 Dragboard db = songListView.startDragAndDrop(TransferMode.MOVE);
                 ClipboardContent content = new ClipboardContent();
                 content.putString(selectedSong.getTitle());
                 db.setContent(content);
-                event.consume();
+                e.consume();
             }
         });
 
-        playlistListView.setOnDragOver(event -> {
-            if (event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
+        playlistListView.setOnDragOver(e -> {
+            if (e.getDragboard().hasString()) {
+                e.acceptTransferModes(TransferMode.MOVE);
             }
-            event.consume();
+            e.consume();
         });
 
-        playlistListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
+        playlistListView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
                 String selectedPlaylist = playlistListView.getSelectionModel().getSelectedItem();
                 if (selectedPlaylist != null) {
                     playlistManager.setCurrentPlaylist(selectedPlaylist);
@@ -968,8 +989,8 @@ class MusicPlayerUI extends BorderPane {
             }
         });
 
-        playlistListView.setOnDragDropped(event -> {
-            Dragboard db = event.getDragboard();
+        playlistListView.setOnDragDropped(e -> {
+            Dragboard db = e.getDragboard();
             boolean success = false;
             if (db.hasString()) {
                 String playlistName = playlistListView.getSelectionModel().getSelectedItem();
@@ -979,8 +1000,8 @@ class MusicPlayerUI extends BorderPane {
                     success = true;
                 }
             }
-            event.setDropCompleted(success);
-            event.consume();
+            e.setDropCompleted(success);
+            e.consume();
         });
     }
 }
