@@ -9,6 +9,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+
 import java.io.File;
 import java.sql.*;
 import java.util.*;
@@ -21,8 +23,7 @@ import javafx.scene.input.ClipboardContent;
 import java.util.stream.Collectors;
 import javafx.geometry.Orientation;
 import javafx.stage.FileChooser;
-import javafx.scene.control.Button;
-import java.util.List;
+
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
@@ -36,6 +37,7 @@ public class App extends Application {
         
         try{
             // Initialize components
+            primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/logo.jpeg")));
             AudioPlayer audioPlayer = new AudioPlayer();
             MusicLibrary library = new MusicLibrary("musicdb.sqlite");
             PlaylistManager playlistManager = new PlaylistManager(library.getConnection());
@@ -997,6 +999,7 @@ class MusicPlayerUI extends BorderPane {
                 Song draggedSong = songListView.getSelectionModel().getSelectedItem();
                 if (playlistName != null && draggedSong != null) {
                     playlistManager.addToPlaylist(playlistName, draggedSong);
+                    updatePlaylistContent();
                     success = true;
                 }
             }
