@@ -1,4 +1,4 @@
-module com.example {
+module application {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.media;
@@ -9,6 +9,6 @@ module com.example {
     requires java.sql.rowset;
     requires jaudiotagger;
 
-    opens com.example to javafx.fxml;
-    exports com.example;
+    opens application to javafx.fxml;
+    exports application;
 }

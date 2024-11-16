@@ -3,8 +3,8 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.example</groupId>
-    <artifactId>demo</artifactId>
+    <groupId>application</groupId>
+    <artifactId>MusicPlayer</artifactId>
     <version>1.0</version>
     
     <properties>
@@ -79,7 +79,7 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <mainClass>com.example.App</mainClass> <!-- Make sure this matches your main class -->
+                            <mainClass>application.App</mainClass> <!-- Make sure this matches your main class -->
                             <!-- Add necessary modules -->
                             <modulePath>${java.home}/lib/javafx/*</modulePath>
                             <addModules>javafx.controls,javafx.fxml,javafx.media,java.sql</addModules>

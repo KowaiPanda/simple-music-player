@@ -1,0 +1,271 @@
+* {
+    -fx-dark-background: #1a1a1a;
+    -fx-darker-background: #141414;
+    -fx-accent: #db2777;
+    -fx-hover-accent: #be185d;
+    -fx-text-primary: #ffffff;
+    -fx-text-secondary: #b3b3b3;
+    -fx-border-color: transparent;
+}
+
+.root {
+    -fx-background-color: -fx-dark-background;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.tab-pane {
+    -fx-background-color: -fx-darker-background;
+    -fx-tab-min-height: 30px;
+    -fx-tab-max-height: 30px;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: -fx-darker-background;
+    -fx-padding: 5 0 0 0;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -fx-darker-background;
+    -fx-effect: null;
+}
+.tab-pane .tab {
+    -fx-background-color: -fx-darker-background;
+    -fx-background-radius: 10px;
+    -fx-border-width: 0 0 3 0;
+    -fx-border-color: transparent;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: -fx-dark-background;
+    -fx-border-color: -fx-accent;
+}
+
+.tab-pane .tab-label {
+    -fx-text-fill: -fx-text-secondary;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: -fx-text-primary;
+}
+
+.text-field {
+    -fx-background-color: #333333;
+    -fx-text-fill: -fx-text-primary;
+    -fx-prompt-text-fill: -fx-text-secondary;
+    -fx-background-radius: 15;
+    -fx-padding: 8;
+}
+
+.text-field:focused {
+    -fx-background-color: #404040;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 15;
+    -fx-border-width: 1;
+}
+
+.label {
+    -fx-text-fill: white;
+}
+
+.button {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: -fx-hover-accent;
+}
+
+.button:pressed {
+    -fx-scale-y: 0.95;
+    -fx-scale-x: 0.95;
+}
+
+.list-view, .table-view {
+    -fx-background-color: -fx-darker-background;
+    -fx-control-inner-background: -fx-darker-background;
+}
+
+.list-cell, .table-row-cell {
+    -fx-background-color: -fx-darker-background;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 8 12;
+}
+
+.list-cell:filled:hover, .table-row-cell:filled:hover {
+    -fx-background-color: #333333;
+}
+
+.list-cell:selected, .table-row-cell:selected {
+    -fx-background-color: #404040;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #4d4d4d;
+    -fx-background-radius: 1000;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #666666;
+}
+
+.slider .track {
+    -fx-background-color: #4d4d4d;
+}
+
+.slider .thumb {
+    -fx-background-color: -fx-accent;
+}
+
+.slider .thumb:hover {
+    -fx-background-color: -fx-hover-accent;
+}
+
+.progress-bar {
+    -fx-accent: -fx-accent;
+}
+
+.progress-bar .track {
+    -fx-background-color: #4d4d4d;
+}
+
+.menu-bar {
+    -fx-background-color: -fx-darker-background;
+}
+
+.menu, .menu-item {
+    -fx-background-color: -fx-darker-background;
+}
+
+.menu .label, .menu-item .label {
+    -fx-text-fill: -fx-text-primary;
+}
+
+.menu:hover, .menu-item:hover {
+    -fx-background-color: #333333;
+}
+
+.context-menu {
+    -fx-background-color: #282828;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #404040;
+    -fx-padding: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 5);
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8 16;
+}
+
+.menu-item .label {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 13px;
+}
+
+.menu-item:focused, .menu-item:hover {
+    -fx-background-color: #404040;
+    -fx-background-radius: 4;
+}
+
+.menu-item .menu {
+    -fx-background-color: #282828;
+}
+
+.menu-item .menu .menu-item {
+    -fx-background-color: transparent;
+}
+
+.menu-item .menu .menu-item:focused {
+    -fx-background-color: #404040;
+}
+
+.separator {
+    -fx-padding: 2 0;
+}
+
+.separator .line {
+    -fx-border-color: #404040;
+    -fx-border-width: 0.5;
+}
+
+.list-view {
+    -fx-background-color: -fx-darker-background;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.list-cell {
+    -fx-background-color: -fx-darker-background;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #333333;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #404040;
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+#queueListView .list-cell {
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #333333;
+}
+
+#playlistContentView .list-cell {
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #333333;
+}
+
+.menu-item:disabled {
+    -fx-opacity: 0.5;
+}
+
+.menu-item#playNowItem:hover {
+    -fx-background-color: derive(-fx-accent, -20%);
+}
+
+.menu-item#removeFromPlaylistItem:hover {
+    -fx-background-color: #be3737;
+}
+
+.menu-item#removeFromQueueItem:hover {
+    -fx-background-color: #be3737;
+}
+
+.menu-item#addToQueueItem:hover {
+    -fx-background-color: derive(-fx-accent, -10%);
+}
+
+.menu-item#playEntirePlaylist:hover {
+    -fx-background-color: derive(-fx-accent, -15%);
+}
+
+.menu-item .arrow {
+    -fx-background-color: -fx-text-secondary;
+}
+
+.menu-item:focused .arrow, .menu-item:hover .arrow {
+    -fx-background-color: -fx-text-primary;
+}
+
+.menu-item:showing {
+    -fx-background-color: #404040;
+    -fx-background-radius: 4;
+}
