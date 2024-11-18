@@ -33,6 +33,7 @@ class MusicPlayerUI extends BorderPane {
     private Button nextButton;
     private Button previousButton;
     private Label nowPlayingLabel;
+    private Label nowDuration;
     private QueueManager queueManager;
     private ListView<Song> playlistContentView;
     private ListView<Song> queueListView;
@@ -68,58 +69,6 @@ class MusicPlayerUI extends BorderPane {
         addSearchFeature();
         setupDragAndDrop();
     }
-    
-    private void addSongsFromDirectory() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Music Files");
-    
-        FileChooser.ExtensionFilter musicFilter = new FileChooser.ExtensionFilter(
-            "Music Files", "*.mp3", "*.wav", "*.m4a", "*.aac");
-        fileChooser.getExtensionFilters().add(musicFilter);
-    
-        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(getScene().getWindow());
-    
-        if (selectedFiles != null) {
-            for (File file : selectedFiles) {
-                try {
-                    AudioFile f = AudioFileIO.read(file);
-                    Tag tag = f.getTag();
-
-                    String fileName = file.getName();
-                    String title = fileName.replaceFirst("[.][^.]+$", "");
-                    String[] parts = fileName.split("[.][^.]+$");
-                    String extension = parts.length > 1 ? parts[1] : "";
-                    String artist = tag.getFirst(FieldKey.ARTIST);
-                    String album = tag.getFirst(FieldKey.ALBUM);
-                    int length = f.getAudioHeader().getTrackLength();
-
-                    if(artist.length()==0) artist = "Unknown Artist";
-                    if(album.length()==0) album = "Unknown Album";
-    
-                    Song song = new Song(
-                        title,
-                        artist,  
-                        album, 
-                        Duration.minutes(length),
-                        file.getAbsolutePath(),
-                        extension
-                    );
-
-                    if (playlistManager.getCurrentPlaylist() == null) {
-                        System.out.println("No current playlist is selected.");
-                        return;
-                    }
-
-                    library.addSong(song);
-                    playlistManager.addToPlaylist(playlistManager.getCurrentPlaylistName(), song);
-                } catch (Exception e) {
-                    System.err.println("Error adding file: " + file.getName() + " - " + e.getMessage());
-                }
-            }
-        }
-        //Refreshing the listview
-        songListView.setItems(FXCollections.observableArrayList(library.getAllSongs()));
-    }    
 
     private VBox createLeftPanel() {
         VBox panel = new VBox(10);
@@ -214,14 +163,63 @@ class MusicPlayerUI extends BorderPane {
             audioPlayer.setVolume(newVal.doubleValue()));
         
         nowPlayingLabel = new Label("No song playing");
+        nowDuration = new Label("--/--");
         
         panel.getChildren().addAll(
             nowPlayingLabel,
+            nowDuration,
             progressSlider,
             controlsBox,
             new HBox(10, new Label("Volume:"), volumeSlider)
         );
         return panel;
+    }
+
+    private void addSongsFromDirectory() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Music Files");
+    
+        FileChooser.ExtensionFilter musicFilter = new FileChooser.ExtensionFilter(
+            "Music Files", "*.mp3", "*.wav", "*.m4a", "*.aac");
+        fileChooser.getExtensionFilters().add(musicFilter);
+    
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(getScene().getWindow());
+    
+        if (selectedFiles != null) {
+            for (File file : selectedFiles) {
+                try {
+                    AudioFile f = AudioFileIO.read(file);
+                    Tag tag = f.getTag();
+
+                    String fileName = file.getName();
+                    String title = fileName.replaceFirst("[.][^.]+$", "");
+                    String[] parts = fileName.split("[.][^.]+$");
+                    String extension = parts.length > 1 ? parts[1] : "";
+                    String artist = tag.getFirst(FieldKey.ARTIST);
+                    String album = tag.getFirst(FieldKey.ALBUM);
+                    int length = f.getAudioHeader().getTrackLength();
+
+                    if(artist.length()==0) artist = "Unknown Artist";
+                    if(album.length()==0) album = "Unknown Album";
+    
+                    Song song = new Song(
+                        title,
+                        artist,  
+                        album, 
+                        Duration.minutes(length),
+                        file.getAbsolutePath(),
+                        extension
+                    );
+
+                    library.addSong(song);
+                    playlistManager.addToPlaylist(playlistManager.getCurrentPlaylistName(), song);
+                } catch (Exception e) {
+                    System.err.println("Error adding file: " + file.getName() + " - " + e.getMessage());
+                }
+            }
+        }
+        //Refreshing the listview
+        songListView.setItems(FXCollections.observableArrayList(library.getAllSongs()));
     }
 
     private void playSong(Song song) {
@@ -239,12 +237,17 @@ class MusicPlayerUI extends BorderPane {
         nowPlayingLabel.setText(String.format("Now Playing: %s - %s", song.getTitle(), song.getArtist()));
     }
 
+    private void updateNowDuration() {
+        nowDuration.setText((int)Math.floor(audioPlayer.getCurrentTime().toMinutes())+":"+(int)(Math.floor(audioPlayer.getCurrentTime().toSeconds())%60)+" / "+(int)Math.floor(audioPlayer.getTotalDuration().toMinutes())+":"+(int)(Math.floor(audioPlayer.getTotalDuration().toSeconds())%60));
+    }
+
     private void startProgressUpdater() {
         Timeline timeline = new Timeline(
             new KeyFrame(Duration.seconds(0.1), e -> {
                 if (audioPlayer.isPlaying()) {
                     double currentTime = audioPlayer.getCurrentTime().toSeconds();
                     double totalTime = audioPlayer.getTotalDuration().toSeconds();
+                    updateNowDuration();
                     if (totalTime > 0) {
                         progressSlider.setValue((currentTime / totalTime) * 100);
                     }
